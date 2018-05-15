@@ -1,7 +1,10 @@
 /**
  * LS-8 v2.0 emulator skeleton code
  */
-
+const LDI = 0b10011001
+const PRN = 0b01000011
+const HLT = 0b00000001
+const MUL = 0b10101010
 /**
  * Class for simulating a simple Computer (CPU & memory)
  */
@@ -54,7 +57,7 @@ class CPU {
   alu (op, regA, regB) {
     switch (op) {
       case 'MUL':
-        // !!! IMPLEMENT ME
+        regA = regA * regB
         break
     }
   }
@@ -67,20 +70,45 @@ class CPU {
     // from the memory address pointed to by the PC. (I.e. the PC holds the
     // index into memory of the instruction that's about to be executed
     // right now.)
-    // !!! IMPLEMENT ME
+    const IR = this.ram.read(this.PC)
     // Debugging output
-    // console.log(`${this.PC}: ${IR.toString(2)}`);
+    console.log(`${this.PC}: ${IR.toString(2)}`)
     // Get the two bytes in memory _after_ the PC in case the instruction
     // needs them.
-    // !!! IMPLEMENT ME
+    const operandA = this.ram.read(this.PC + 1)
+    // console.log(operandA, 'OP-A')
+
+    const operandB = this.ram.read(this.PC + 2)
+    // console.log(operandB, 'OP-B')
     // Execute the instruction. Perform the actions for the instruction as
     // outlined in the LS-8 spec.
-    // !!! IMPLEMENT ME
+    switch (IR) {
+      case LDI:
+        this.reg[operandA] = operandB
+        // this.PC += 3
+        break
+      case MUL:
+        this.reg[operandA] = operandB
+        break
+      case PRN:
+        console.log(parseInt(0b01000011, 10))
+        // this.PC += 2
+        break
+      case HLT:
+        this.stopClock()
+        break
+      default:
+        console.log(`error at ${this.PC} : ${IR.toString(2)}`)
+        this.stopClock()
+    }
     // Increment the PC register to go to the next instruction. Instructions
     // can be 1, 2, or 3 bytes long. Hint: the high 2 bits of the
     // instruction byte tells you how many bytes follow the instruction byte
     // for any particular instruction.
-    // !!! IMPLEMENT ME
+    const move = (IR >> 6) + 1
+
+    this.PC += move
+    // console.log(move, 'Move')
   }
 }
 
