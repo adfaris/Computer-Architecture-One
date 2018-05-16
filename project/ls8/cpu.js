@@ -5,6 +5,13 @@ const LDI = 0b10011001
 const PRN = 0b01000011
 const HLT = 0b00000001
 const MUL = 0b10101010
+const DIV = 0b10101011
+const ADD = 0b10101111
+const SUB = 0b10111111
+const INC = 0b10111000
+const DEC = 0b01010101
+const POP = 0b01001100
+const PUSH = 0b01001101
 /**
  * Class for simulating a simple Computer (CPU & memory)
  */
@@ -19,6 +26,7 @@ class CPU {
 
     // Special-purpose registers
     this.PC = 0 // Program Counter
+    this.SP = 0xf4
   }
 
   /**
@@ -57,8 +65,24 @@ class CPU {
   alu (op, regA, regB) {
     switch (op) {
       case 'MUL':
-        regA = regA * regB
+        this.reg[regA] = this.reg[regA] * this.reg[regB]
         break
+      case 'DIV':
+        this.reg[regA] = this.reg[regA] / this.reg[regB]
+        break
+      case 'ADD':
+        this.reg[regA] = this.reg[regA] + this.reg[regB]
+        break
+      case 'SUB':
+        this.reg[regA] = this.reg[regA] - this.reg[regB]
+        break
+      case 'INC':
+        this.reg[regA] += 1
+        break
+      case 'DEC':
+        this.reg[regA] -= 1
+        break
+      // case 'CMP':
     }
   }
 
@@ -88,12 +112,44 @@ class CPU {
         // this.PC += 3
         break
       case MUL:
-        this.reg[operandA] = operandB
+        // this.reg[operandA] = this.reg[operandA] * this.reg[operandB]
+        this.alu('MUL', operandA, operandB)
         break
+      case DIV:
+        // this.reg[operandA] = this.reg[operandA] * this.reg[operandB]
+        this.alu('DIV', operandA, operandB)
+        break
+      case ADD:
+        // this.reg[operandA] = this.reg[operandA] * this.reg[operandB]
+        this.alu('ADD', operandA, operandB)
+        break
+      case SUB:
+        // this.reg[operandA] = this.reg[operandA] * this.reg[operandB]
+        this.alu('SUB', operandA, operandB)
+        break
+      case INC:
+        // this.reg[operandA] = this.reg[operandA] * this.reg[operandB]
+        this.alu('INC', operandA)
+        break
+      case DEC:
+        // this.reg[operandA] = this.reg[operandA] * this.reg[operandB]
+        this.alu('DEC', operandA)
+        break
+
       case PRN:
-        console.log(parseInt(0b01000011, 10))
+        console.log(this.reg[operandA])
         // this.PC += 2
         break
+      case POP:
+        // this.SP -= 1
+        this.reg[operandA] = this.ram.read.SP
+        break
+
+      case PUSH:
+        this.reg[operandB] = this.reg[operandB]
+        // this.SP += 1
+        break
+
       case HLT:
         this.stopClock()
         break
