@@ -12,6 +12,11 @@ const INC = 0b10111000
 const DEC = 0b01010101
 const POP = 0b01001100
 const PUSH = 0b01001101
+const CMP = 0b10100000
+let FL = 0b00000000
+const JEQ = 0b01010001
+const JMP = 0b01010000
+const JNE = 0b01010010
 /**
  * Class for simulating a simple Computer (CPU & memory)
  */
@@ -23,10 +28,10 @@ class CPU {
     this.ram = ram
 
     this.reg = new Array(8).fill(0) // General-purpose registers R0-R7
-
+    this.reg[7] = 0xf4
     // Special-purpose registers
     this.PC = 0 // Program Counter
-    this.SP = 0xf4
+    // this.SP = this.reg.read
   }
 
   /**
@@ -82,7 +87,20 @@ class CPU {
       case 'DEC':
         this.reg[regA] -= 1
         break
-      // case 'CMP':
+      case 'CMP':
+        // if (this.reg[regA] > this.reg[regB]) {
+        //   FL = FL | 0b0000100
+        //   console.log(this.FL.toString(2))
+        // } else if (this.reg[regA] < this.reg[regB]) {
+        //   FL = FL & 0b000000
+        //   FL = FL | 0b00000010
+        //   console.log(this.FL)
+        if (this.reg[regA] === this.reg[regB]) {
+          FL = FL & 0b0000000 // reset FL
+          FL = FL | 0b0000001 // set FL
+          console.log(this.FL)
+        }
+        break
     }
   }
 
@@ -96,7 +114,7 @@ class CPU {
     // right now.)
     const IR = this.ram.read(this.PC)
     // Debugging output
-    console.log(`${this.PC}: ${IR.toString(2)}`)
+    // console.log(`${this.PC}: ${IR.toString(2)}`)
     // Get the two bytes in memory _after_ the PC in case the instruction
     // needs them.
     const operandA = this.ram.read(this.PC + 1)
@@ -127,6 +145,11 @@ class CPU {
         // this.reg[operandA] = this.reg[operandA] * this.reg[operandB]
         this.alu('SUB', operandA, operandB)
         break
+
+      case CMP:
+        this.alu('CMP', operandA, operandB)
+        break
+
       case INC:
         // this.reg[operandA] = this.reg[operandA] * this.reg[operandB]
         this.alu('INC', operandA)
@@ -140,19 +163,38 @@ class CPU {
         console.log(this.reg[operandA])
         // this.PC += 2
         break
-      case POP:
-        // this.SP -= 1
-        this.reg[operandA] = this.ram.read.SP
-        break
 
       case PUSH:
-        this.reg[operandB] = this.reg[operandB]
-        // this.SP += 1
+        this.reg[7]--
+        this.ram.write(this.reg[7], this.reg[operandA])
+        // this.reg[operandB] = this.reg[operandB]
+        break
+
+      case POP:
+        this.reg[operandA] = this.ram.read(this.reg[7])
+        this.reg[7]++
+        break
+
+      case JMP:
+        this.reg[operandA] = this.PC
+        break
+
+      case JEQ:
+        if (FL === 0b0000001) {
+          // JMP(this.reg[operandA])
+        }
+        break
+
+      case JNE:
+        if (FL === 0b00000000) {
+          // JMP(this.reg[operandA])
+        }
         break
 
       case HLT:
         this.stopClock()
         break
+
       default:
         console.log(`error at ${this.PC} : ${IR.toString(2)}`)
         this.stopClock()
